@@ -1,0 +1,16 @@
+/**
+ * Events the {{kebabCase name}} module emits. It consumes none.
+ * The declaration below adds them to the shared, typed event registry. To react to another
+ * module's event, export a `register{{pascalCase name}}EventHandlers(eventBus, service)` function from this
+ * file and call it in index.ts (see src/modules/users/users.events.ts).
+ */
+export interface {{pascalCase (singular name)}}CreatedEvent {
+  {{camelCase (singular name)}}Id: string;
+  createdAt: string;
+}
+
+declare module '@shared/lib/event-bus' {
+  interface DomainEvents {
+    '{{kebabCase (singular name)}}.created': {{pascalCase (singular name)}}CreatedEvent;
+  }
+}

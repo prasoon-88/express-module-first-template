@@ -1,0 +1,71 @@
+import { randomUUID } from 'node:crypto';
+import { beforeEach, describe, expect, it } from 'vitest';
+import type { {{pascalCase (singular name)}}Entity } from '../{{kebabCase name}}.model';
+import type { {{pascalCase name}}Repository } from '../{{kebabCase name}}.repository';
+
+function build{{pascalCase (singular name)}}(overrides: Partial<{{pascalCase (singular name)}}Entity> = {}): {{pascalCase (singular name)}}Entity {
+  const createdAt = overrides.createdAt ?? new Date('2026-01-01T00:00:00.000Z');
+  return {
+    id: randomUUID(),
+    name: 'Example',
+    createdAt,
+    updatedAt: createdAt,
+    ...overrides,
+  };
+}
+
+/**
+ * The behaviour every {{pascalCase name}}Repository adapter must have. Run it against each adapter.
+ * `createRepository` must return an empty repository on every call.
+ */
+export function describe{{pascalCase name}}RepositoryContract(
+  adapterName: string,
+  createRepository: () => {{pascalCase name}}Repository | Promise<{{pascalCase name}}Repository>,
+): void {
+  describe(`{{pascalCase name}}Repository contract: ${adapterName}`, () => {
+    let repository: {{pascalCase name}}Repository;
+
+    beforeEach(async () => {
+      repository = await createRepository();
+    });
+
+    it('finds an inserted {{lowerCase (singular name)}} by id', async () => {
+      const {{camelCase (singular name)}} = build{{pascalCase (singular name)}}();
+      await repository.insert({{camelCase (singular name)}});
+
+      await expect(repository.findById({{camelCase (singular name)}}.id)).resolves.toEqual({{camelCase (singular name)}});
+    });
+
+    it('resolves to null for an unknown id', async () => {
+      await expect(repository.findById(randomUUID())).resolves.toBeNull();
+    });
+
+    it('does not share state with the objects it receives or returns', async () => {
+      const {{camelCase (singular name)}} = build{{pascalCase (singular name)}}({ name: 'Original' });
+      await repository.insert({{camelCase (singular name)}});
+      {{camelCase (singular name)}}.name = 'Mutated after insert';
+
+      const found = await repository.findById({{camelCase (singular name)}}.id);
+      expect(found?.name).toBe('Original');
+
+      if (found) {
+        found.name = 'Mutated after read';
+      }
+      await expect(repository.findById({{camelCase (singular name)}}.id)).resolves.toMatchObject({ name: 'Original' });
+    });
+
+    it('lists by creation time with offset, limit and the overall total', async () => {
+      const second = build{{pascalCase (singular name)}}({ createdAt: new Date('2026-01-02T00:00:00.000Z') });
+      const first = build{{pascalCase (singular name)}}({ createdAt: new Date('2026-01-01T00:00:00.000Z') });
+      const third = build{{pascalCase (singular name)}}({ createdAt: new Date('2026-01-03T00:00:00.000Z') });
+      await repository.insert(second);
+      await repository.insert(first);
+      await repository.insert(third);
+
+      const page = await repository.list({ offset: 1, limit: 5 });
+
+      expect(page.items.map(({ id }) => id)).toEqual([second.id, third.id]);
+      expect(page.total).toBe(3);
+    });
+  });
+}

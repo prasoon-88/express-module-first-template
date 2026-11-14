@@ -1,0 +1,23 @@
+import type { {{pascalCase (singular name)}}Entity } from './{{kebabCase name}}.model';
+
+export interface List{{pascalCase name}}Params {
+  offset: number;
+  limit: number;
+}
+
+export interface {{pascalCase name}}Page {
+  items: {{pascalCase (singular name)}}Entity[];
+  total: number;
+}
+
+/**
+ * Persistence port of the {{kebabCase name}} module: the only persistence contract the service sees.
+ * Every adapter (`{{kebabCase name}}.repository.<driver>.ts`) must pass the contract suite in
+ * `__tests__/{{kebabCase name}}.repository.contract.ts`.
+ */
+export interface {{pascalCase name}}Repository {
+  insert({{camelCase (singular name)}}: {{pascalCase (singular name)}}Entity): Promise<void>;
+  findById(id: string): Promise<{{pascalCase (singular name)}}Entity | null>;
+  /** Ordered by `createdAt` ascending, then `id`. `total` counts every match, not just the page. */
+  list(params: List{{pascalCase name}}Params): Promise<{{pascalCase name}}Page>;
+}

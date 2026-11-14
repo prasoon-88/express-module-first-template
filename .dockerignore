@@ -1,0 +1,13 @@
+# The image is built from package.json, the lockfile, tsconfig.json and src/ only.
+.git
+.github
+node_modules
+dist
+coverage
+tests
+plop-templates
+plopfile.mjs
+*.md
+.env
+.env.*
+*.log

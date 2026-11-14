@@ -1,0 +1,56 @@
+import { randomUUID } from 'node:crypto';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { createEventBus, type EventBus } from '@shared/lib/event-bus';
+import { {{pascalCase (singular name)}}NotFoundError } from '../{{kebabCase name}}.errors';
+import { createInMemory{{pascalCase name}}Repository } from '../{{kebabCase name}}.repository.memory';
+import { create{{pascalCase name}}Service, type {{pascalCase name}}Service } from '../{{kebabCase name}}.service';
+
+describe('{{kebabCase name}} service', () => {
+  let service: {{pascalCase name}}Service;
+  let eventBus: EventBus;
+  let created: Mock<(event: unknown) => void>;
+
+  beforeEach(() => {
+    eventBus = createEventBus();
+    created = vi.fn<(event: unknown) => void>();
+    eventBus.subscribe('{{kebabCase (singular name)}}.created', created);
+    service = create{{pascalCase name}}Service({ repository: createInMemory{{pascalCase name}}Repository(), eventBus });
+  });
+
+  it('creates a {{lowerCase (singular name)}}, returns a DTO and publishes {{kebabCase (singular name)}}.created', async () => {
+    const {{camelCase (singular name)}} = await service.create{{pascalCase (singular name)}}({ name: 'First' });
+    await eventBus.drain();
+
+    expect({{camelCase (singular name)}}).toEqual({
+      id: expect.any(String) as string,
+      name: 'First',
+      createdAt: expect.any(String) as string,
+      updatedAt: expect.any(String) as string,
+    });
+    expect(created).toHaveBeenCalledExactlyOnceWith({
+      {{camelCase (singular name)}}Id: {{camelCase (singular name)}}.id,
+      createdAt: {{camelCase (singular name)}}.createdAt,
+    });
+  });
+
+  it('gets a {{lowerCase (singular name)}} by id', async () => {
+    const {{camelCase (singular name)}} = await service.create{{pascalCase (singular name)}}({ name: 'First' });
+
+    await expect(service.get{{pascalCase (singular name)}}ById({{camelCase (singular name)}}.id)).resolves.toEqual({{camelCase (singular name)}});
+  });
+
+  it('throws {{pascalCase (singular name)}}NotFoundError for an unknown id', async () => {
+    await expect(service.get{{pascalCase (singular name)}}ById(randomUUID())).rejects.toThrow({{pascalCase (singular name)}}NotFoundError);
+  });
+
+  it('lists one page at a time', async () => {
+    for (const name of ['a', 'b', 'c']) {
+      await service.create{{pascalCase (singular name)}}({ name });
+    }
+
+    const page = await service.list{{pascalCase name}}({ page: 2, pageSize: 2 });
+
+    expect(page).toMatchObject({ page: 2, pageSize: 2, total: 3, totalPages: 2 });
+    expect(page.items).toHaveLength(1);
+  });
+});

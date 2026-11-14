@@ -1,0 +1,19 @@
+import { Router } from 'express';
+import { validate } from '@shared/middleware/validate';
+import type { {{pascalCase name}}Controller } from './{{kebabCase name}}.controller';
+import {
+  create{{pascalCase (singular name)}}BodySchema,
+  list{{pascalCase name}}QuerySchema,
+  {{camelCase (singular name)}}IdParamsSchema,
+} from './{{kebabCase name}}.schema';
+
+/** HTTP wiring only: path, validation, controller method. */
+export function create{{pascalCase name}}Router(controller: {{pascalCase name}}Controller): Router {
+  const router = Router();
+
+  router.post('/', validate({ body: create{{pascalCase (singular name)}}BodySchema }), controller.create);
+  router.get('/', validate({ query: list{{pascalCase name}}QuerySchema }), controller.list);
+  router.get('/:id', validate({ params: {{camelCase (singular name)}}IdParamsSchema }), controller.getById);
+
+  return router;
+}

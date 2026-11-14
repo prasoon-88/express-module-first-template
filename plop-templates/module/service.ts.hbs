@@ -1,0 +1,64 @@
+import { randomUUID } from 'node:crypto';
+import type { EventBus } from '@shared/lib/event-bus';
+import type { Page } from '@shared/types/pagination';
+import { toOffset, toPage, type PaginationQuery } from '@shared/utils/pagination';
+import { {{pascalCase (singular name)}}NotFoundError } from './{{kebabCase name}}.errors';
+import type { {{pascalCase (singular name)}}CreatedEvent } from './{{kebabCase name}}.events';
+import type { {{pascalCase (singular name)}}Entity } from './{{kebabCase name}}.model';
+import type { {{pascalCase name}}Repository } from './{{kebabCase name}}.repository';
+import type { Create{{pascalCase (singular name)}}Input, {{pascalCase (singular name)}}Dto } from './{{kebabCase name}}.types';
+
+export interface {{pascalCase name}}Service {
+  create{{pascalCase (singular name)}}(input: Create{{pascalCase (singular name)}}Input): Promise<{{pascalCase (singular name)}}Dto>;
+  get{{pascalCase (singular name)}}ById(id: string): Promise<{{pascalCase (singular name)}}Dto>;
+  list{{pascalCase name}}(query: PaginationQuery): Promise<Page<{{pascalCase (singular name)}}Dto>>;
+}
+
+export interface {{pascalCase name}}ServiceDeps {
+  repository: {{pascalCase name}}Repository;
+  eventBus: EventBus;
+}
+
+/** Entities stay inside the module; everything that leaves the service is a DTO. */
+function to{{pascalCase (singular name)}}Dto({{camelCase (singular name)}}: {{pascalCase (singular name)}}Entity): {{pascalCase (singular name)}}Dto {
+  return {
+    id: {{camelCase (singular name)}}.id,
+    name: {{camelCase (singular name)}}.name,
+    createdAt: {{camelCase (singular name)}}.createdAt.toISOString(),
+    updatedAt: {{camelCase (singular name)}}.updatedAt.toISOString(),
+  };
+}
+
+export function create{{pascalCase name}}Service({ repository, eventBus }: {{pascalCase name}}ServiceDeps): {{pascalCase name}}Service {
+  return {
+    async create{{pascalCase (singular name)}}(input) {
+      const now = new Date();
+      const {{camelCase (singular name)}}: {{pascalCase (singular name)}}Entity = {
+        id: randomUUID(),
+        name: input.name,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await repository.insert({{camelCase (singular name)}});
+
+      // Published only after the {{lowerCase (singular name)}} is stored.
+      const event: {{pascalCase (singular name)}}CreatedEvent = { {{camelCase (singular name)}}Id: {{camelCase (singular name)}}.id, createdAt: now.toISOString() };
+      eventBus.publish('{{kebabCase (singular name)}}.created', event);
+
+      return to{{pascalCase (singular name)}}Dto({{camelCase (singular name)}});
+    },
+
+    async get{{pascalCase (singular name)}}ById(id) {
+      const {{camelCase (singular name)}} = await repository.findById(id);
+      if (!{{camelCase (singular name)}}) {
+        throw new {{pascalCase (singular name)}}NotFoundError(id);
+      }
+      return to{{pascalCase (singular name)}}Dto({{camelCase (singular name)}});
+    },
+
+    async list{{pascalCase name}}(query) {
+      const { items, total } = await repository.list(toOffset(query));
+      return toPage(items.map(to{{pascalCase (singular name)}}Dto), total, query);
+    },
+  };
+}

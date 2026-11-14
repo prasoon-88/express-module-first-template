@@ -1,0 +1,16 @@
+import { z } from 'zod';
+import { paginationQuerySchema } from '@shared/utils/pagination';
+
+export const create{{pascalCase (singular name)}}BodySchema = z.object({
+  name: z.string().trim().min(1).max(100),
+});
+
+export const {{camelCase (singular name)}}IdParamsSchema = z.object({
+  id: z.uuid(),
+});
+
+export const list{{pascalCase name}}QuerySchema = paginationQuerySchema;
+
+export type Create{{pascalCase (singular name)}}Body = z.infer<typeof create{{pascalCase (singular name)}}BodySchema>;
+export type {{pascalCase (singular name)}}IdParams = z.infer<typeof {{camelCase (singular name)}}IdParamsSchema>;
+export type List{{pascalCase name}}Query = z.infer<typeof list{{pascalCase name}}QuerySchema>;

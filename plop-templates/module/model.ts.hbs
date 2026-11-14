@@ -1,0 +1,11 @@
+/**
+ * The {{lowerCase (singular name)}} as the {{kebabCase name}} module stores it. Storage-neutral: adapters map this to and from
+ * their own representation (document, row). It never leaves the module; services return
+ * `{{pascalCase (singular name)}}Dto`.
+ */
+export interface {{pascalCase (singular name)}}Entity {
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+}

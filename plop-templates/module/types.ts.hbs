@@ -1,0 +1,16 @@
+export interface {{pascalCase (singular name)}}Dto {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Create{{pascalCase (singular name)}}Input {
+  name: string;
+}
+
+/** What other modules may call. Exposed through `create{{pascalCase name}}Module(...).api`. */
+export interface {{pascalCase name}}Api {
+  /** Rejects with `{{pascalCase (singular name)}}NotFoundError` when the {{lowerCase (singular name)}} does not exist. */
+  get{{pascalCase (singular name)}}ById(id: string): Promise<{{pascalCase (singular name)}}Dto>;
+}

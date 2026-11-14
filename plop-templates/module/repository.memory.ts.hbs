@@ -1,0 +1,32 @@
+import type { {{pascalCase (singular name)}}Entity } from './{{kebabCase name}}.model';
+import type { {{pascalCase name}}Repository } from './{{kebabCase name}}.repository';
+
+/**
+ * In-memory adapter: data lives in this process and is lost on restart.
+ * Entities are cloned on the way in and out, as a real database would, so callers can never
+ * change stored state by mutating an object they hold.
+ */
+export function createInMemory{{pascalCase name}}Repository(): {{pascalCase name}}Repository {
+  const records = new Map<string, {{pascalCase (singular name)}}Entity>();
+
+  return {
+    async insert({{camelCase (singular name)}}) {
+      records.set({{camelCase (singular name)}}.id, structuredClone({{camelCase (singular name)}}));
+    },
+
+    async findById(id) {
+      const found = records.get(id);
+      return found ? structuredClone(found) : null;
+    },
+
+    async list({ offset, limit }) {
+      const sorted = [...records.values()].sort(
+        (a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id),
+      );
+      return {
+        items: sorted.slice(offset, offset + limit).map((record) => structuredClone(record)),
+        total: sorted.length,
+      };
+    },
+  };
+}

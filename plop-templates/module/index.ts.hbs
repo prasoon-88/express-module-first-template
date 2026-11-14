@@ -1,0 +1,38 @@
+/**
+ * Public API of the {{kebabCase name}} module. Other code may import from this file only.
+ */
+import type { Router } from 'express';
+import type { EventBus } from '@shared/lib/event-bus';
+import { logger } from '@shared/lib/logger';
+import { create{{pascalCase name}}Controller } from './{{kebabCase name}}.controller';
+import { createInMemory{{pascalCase name}}Repository } from './{{kebabCase name}}.repository.memory';
+import { create{{pascalCase name}}Router } from './{{kebabCase name}}.routes';
+import { create{{pascalCase name}}Service } from './{{kebabCase name}}.service';
+import type { {{pascalCase name}}Api } from './{{kebabCase name}}.types';
+
+export { {{pascalCase (singular name)}}NotFoundError } from './{{kebabCase name}}.errors';
+export type { {{pascalCase (singular name)}}Dto, {{pascalCase name}}Api } from './{{kebabCase name}}.types';
+
+export interface {{pascalCase name}}ModuleDeps {
+  eventBus: EventBus;
+}
+
+export interface {{pascalCase name}}Module {
+  router: Router;
+  api: {{pascalCase name}}Api;
+}
+
+export function create{{pascalCase name}}Module(deps: {{pascalCase name}}ModuleDeps): {{pascalCase name}}Module {
+  // The one place that chooses the persistence adapter for this module.
+  const repository = createInMemory{{pascalCase name}}Repository();
+  logger.info({ module: '{{kebabCase name}}', persistence: 'in-memory' }, 'Data is lost on restart');
+
+  const service = create{{pascalCase name}}Service({ repository, eventBus: deps.eventBus });
+
+  return {
+    router: create{{pascalCase name}}Router(create{{pascalCase name}}Controller(service)),
+    api: {
+      get{{pascalCase (singular name)}}ById: (id) => service.get{{pascalCase (singular name)}}ById(id),
+    },
+  };
+}

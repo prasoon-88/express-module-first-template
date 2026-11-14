@@ -1,0 +1,7 @@
+import { NotFoundError } from '@shared/errors';
+
+export class {{pascalCase (singular name)}}NotFoundError extends NotFoundError {
+  constructor(id: string) {
+    super(`{{pascalCase (singular name)}} ${id} not found`, '{{constantCase (singular name)}}_NOT_FOUND');
+  }
+}

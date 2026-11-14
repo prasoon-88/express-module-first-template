@@ -1,10 +1,11 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["src/modules/*/index.ts"],
   "project": ["src/**/*.ts", "tests/**/*.ts"],
+  "ignore": ["tests/architecture/fixtures/**"],
   "ignoreDependencies": ["pino-pretty"],
   "ignoreExportsUsedInFile": {
     "interface": true,
     "type": true
-  },
-  "ignore": ["tests/architecture/fixtures/**"]
+  }
 }

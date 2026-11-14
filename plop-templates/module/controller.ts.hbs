@@ -1,0 +1,27 @@
+import type { ValidatedHandler } from '@shared/middleware/validate';
+import type { Create{{pascalCase (singular name)}}Body, List{{pascalCase name}}Query, {{pascalCase (singular name)}}IdParams } from './{{kebabCase name}}.schema';
+import type { {{pascalCase name}}Service } from './{{kebabCase name}}.service';
+
+export interface {{pascalCase name}}Controller {
+  create: ValidatedHandler<{ body: Create{{pascalCase (singular name)}}Body }>;
+  getById: ValidatedHandler<{ params: {{pascalCase (singular name)}}IdParams }>;
+  list: ValidatedHandler<{ query: List{{pascalCase name}}Query }>;
+}
+
+/** Translates HTTP to service calls and back. No business logic. */
+export function create{{pascalCase name}}Controller(service: {{pascalCase name}}Service): {{pascalCase name}}Controller {
+  return {
+    async create(req, res) {
+      const created = await service.create{{pascalCase (singular name)}}(req.body);
+      res.status(201).location(`${req.baseUrl}/${created.id}`).json(created);
+    },
+
+    async getById(req, res) {
+      res.json(await service.get{{pascalCase (singular name)}}ById(req.params.id));
+    },
+
+    async list(req, res) {
+      res.json(await service.list{{pascalCase name}}(req.query));
+    },
+  };
+}
