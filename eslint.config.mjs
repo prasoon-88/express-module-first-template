@@ -36,6 +36,12 @@ export default defineConfig(
   },
 
   {
+    // In-memory adapters implement the asynchronous repository port without awaiting anything.
+    files: ['src/modules/*/*.repository.memory.ts'],
+    rules: { '@typescript-eslint/require-await': 'off' },
+  },
+
+  {
     files: ['**/*.cjs'],
     languageOptions: { sourceType: 'commonjs', globals: { module: 'writable' } },
   },

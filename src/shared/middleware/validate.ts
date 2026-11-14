@@ -11,16 +11,24 @@ export interface RequestSchemas<Params, Body, Query> {
   query?: z.ZodType<Query>;
 }
 
+interface RequestParts {
+  params?: unknown;
+  body?: unknown;
+  query?: unknown;
+}
+
 /**
- * A handler whose `req.params`, `req.body` and `req.query` have been parsed by `validate`.
- * Controllers use the same type arguments as the schemas on their route, so a route whose
- * schemas do not match its controller fails to compile.
+ * A handler whose request parts have been parsed by `validate`, e.g.
+ * `ValidatedHandler<{ params: UserIdParams; body: UpdateUserBody }>`.
+ * Controllers name the types their route's schemas produce, so a route whose schemas do not
+ * match its controller fails to compile.
  */
-export type ValidatedHandler<
-  Params = DefaultParams,
-  Body = unknown,
-  Query = DefaultQuery,
-> = RequestHandler<Params, unknown, Body, Query>;
+export type ValidatedHandler<Parts extends RequestParts = object> = RequestHandler<
+  Parts extends { params: infer Params } ? Params : DefaultParams,
+  unknown,
+  Parts extends { body: infer Body } ? Body : unknown,
+  Parts extends { query: infer Query } ? Query : DefaultQuery
+>;
 
 function parsePart<T>(
   part: 'params' | 'body' | 'query',
@@ -44,7 +52,7 @@ function parsePart<T>(
  */
 export function validate<Params = DefaultParams, Body = unknown, Query = DefaultQuery>(
   schemas: RequestSchemas<Params, Body, Query>,
-): ValidatedHandler<Params, Body, Query> {
+): RequestHandler<Params, unknown, Body, Query> {
   return (req, _res, next) => {
     const issues: ValidationIssue[] = [];
     const params = schemas.params && parsePart('params', schemas.params, req.params, issues);

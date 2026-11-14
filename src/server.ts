@@ -1,15 +1,26 @@
 import { env } from '@config/index';
 import { logger } from '@shared/lib/logger';
 import { buildApp } from './app';
+import { createExpirePendingOrdersJob } from './jobs/expire-pending-orders.job';
+import { createScheduler } from './jobs/scheduler';
 
 let shuttingDown = false;
 
-const { app, eventBus } = buildApp({ env, isShuttingDown: () => shuttingDown });
+const { app, eventBus, orders } = buildApp({ env, isShuttingDown: () => shuttingDown });
+
+const scheduler = createScheduler([
+  createExpirePendingOrdersJob({
+    orders,
+    ttlMs: env.ORDER_PENDING_TTL_MS,
+    intervalMs: env.EXPIRE_ORDERS_INTERVAL_MS,
+  }),
+]);
 
 const server = app.listen(env.PORT, env.HOST);
 
 server.once('listening', () => {
   logger.info({ host: env.HOST, port: env.PORT, env: env.NODE_ENV }, 'Server listening');
+  scheduler.start();
 });
 
 server.once('error', (error) => {
@@ -47,6 +58,7 @@ async function shutdown(reason: string, exitCode: number): Promise<void> {
 
   let code = exitCode;
   try {
+    await scheduler.stop();
     await closeServer();
     await eventBus.drain();
   } catch (error) {

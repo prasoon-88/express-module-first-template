@@ -2,6 +2,8 @@ import express, { type Express } from 'express';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import type { Env } from '@config/index';
+import { createOrdersModule, type OrdersApi } from '@modules/orders';
+import { createUsersModule } from '@modules/users';
 import { createEventBus, type EventBus } from '@shared/lib/event-bus';
 import { createHealthRouter, type ReadinessCheck } from '@shared/lib/health';
 import { logger } from '@shared/lib/logger';
@@ -21,6 +23,8 @@ export interface AppDeps {
 export interface App {
   app: Express;
   eventBus: EventBus;
+  /** Public APIs that code outside the HTTP layer (jobs) needs. */
+  orders: OrdersApi;
 }
 
 const PROBE_PATHS = new Set(['/health', '/ready']);
@@ -30,6 +34,8 @@ export function buildApp(deps: AppDeps): App {
   const { env } = deps;
 
   const eventBus = createEventBus();
+  const users = createUsersModule({ eventBus });
+  const orders = createOrdersModule({ eventBus, users: users.api });
 
   const app = express();
   app.set('trust proxy', env.TRUST_PROXY);
@@ -40,6 +46,11 @@ export function buildApp(deps: AppDeps): App {
       logger,
       genReqId: (_req, res) => getRequestId(res),
       autoLogging: { ignore: (req) => PROBE_PATHS.has(req.url) },
+      // One short line per request; the default serializers log every header.
+      serializers: {
+        req: (req: { method: string; url: string }) => ({ method: req.method, url: req.url }),
+        res: (res: { statusCode: number }) => ({ statusCode: res.statusCode }),
+      },
     }),
   );
   app.use(helmet());
@@ -52,8 +63,11 @@ export function buildApp(deps: AppDeps): App {
   app.use(rateLimiter({ windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX }));
   app.use(express.json({ limit: env.BODY_LIMIT }));
 
+  app.use('/users', users.router);
+  app.use('/orders', orders.router);
+
   app.use(notFound());
   app.use(errorHandler());
 
-  return { app, eventBus };
+  return { app, eventBus, orders: orders.api };
 }
