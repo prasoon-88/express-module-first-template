@@ -15,7 +15,7 @@
     "start": "node --enable-source-maps dist/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . && prettier --check . && knip",
-    "lint:arch": "depcruise src --config .dependency-cruiser.cjs",
+    "lint:arch": "depcruise src --config .dependency-cruiser.cjs && eslint --no-inline-config --config eslint.arch.config.mjs src",
     "test": "vitest run",
     "gen:module": "plop module"
   },

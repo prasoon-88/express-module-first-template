@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
+import architecture from './eslint.arch.config.mjs';
 
 export default defineConfig(
   globalIgnores(['dist/', 'coverage/', 'plop-templates/', 'tests/architecture/fixtures/']),
@@ -45,6 +46,8 @@ export default defineConfig(
     files: ['**/*.cjs'],
     languageOptions: { sourceType: 'commonjs', globals: { module: 'writable' } },
   },
+
+  ...architecture,
 
   prettier,
 );

@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "paths": {
+      "@modules/*": ["./src/modules/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@config/*": ["./src/config/*"]
+    }
+  },
+  "include": ["src"]
+}
